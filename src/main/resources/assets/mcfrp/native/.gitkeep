@@ -1,0 +1,8 @@
+# Place frpc binaries here
+
+Download from: https://github.com/fatedier/frp/releases (v0.52+)
+
+Files needed:
+- Windows: frpc.exe -> rename to frpc-windows.exe
+- macOS: frpc -> rename to frpc-macos  
+- Linux: frpc -> rename to frpc-linux

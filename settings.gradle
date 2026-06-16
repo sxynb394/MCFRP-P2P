@@ -1,0 +1,23 @@
+pluginManagement {
+    repositories {
+        maven {
+            name = 'BMCL'
+            url = 'https://bmclapi2.bangbang93.com/maven/'
+        }
+        maven {
+            name = 'Aliyun'
+            url = 'https://maven.aliyun.com/repository/gradle-plugin'
+        }
+        maven {
+            name = 'Tencent'
+            url = 'https://mirrors.cloud.tencent.com/nexus/repository/maven-public/'
+        }
+        maven {
+            name = 'Fabric'
+            url = 'https://maven.fabricmc.net/'
+        }
+        gradlePluginPortal()
+    }
+}
+
+rootProject.name = 'mc-frp-p2p'

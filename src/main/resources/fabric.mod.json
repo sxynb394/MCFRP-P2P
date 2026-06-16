@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "mcfrp",
+  "version": "${version}",
+  "name": "MC FRP P2P",
+  "description": "P2P LAN over frp XTCP",
+  "environment": "client",
+  "entrypoints": {
+    "client": ["com.mcfrp.McFrpClient"]
+  },
+  "mixins": ["mcfrp.mixins.json"],
+  "depends": {
+    "fabricloader": ">=0.15.0",
+    "minecraft": "~1.20.1",
+    "java": ">=17",
+    "fabric-api": "*"
+  },
+  "custom": {
+    "mcfrp:notice": "包含 frp (https://github.com/fatedier/frp) 根据 Apache License 2.0 授权"
+  }
+}
