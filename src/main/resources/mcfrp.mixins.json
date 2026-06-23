@@ -5,7 +5,11 @@
   "mixins": [],
   "client": [
     "IntegratedServerMixin",
-    "MultiplayerScreenMixin"
+    "MultiplayerScreenMixin",
+    "DirectConnectScreenMixin",
+    "AddServerScreenMixin",
+    "MultiplayerServerListEntryMixin",
+    "InGameMenuScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 1

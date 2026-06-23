@@ -1,5 +1,5 @@
 plugins {
-    id 'fabric-loom' version '1.5-SNAPSHOT'
+    id 'fabric-loom' version '1.6.11'
     id 'maven-publish'
 }
 
@@ -7,6 +7,10 @@ version = project.mod_version
 group = project.maven_group
 
 repositories {
+    maven {
+        name = 'BMCL-Libraries'
+        url = 'https://bmclapi2.bangbang93.com/libraries/'
+    }
     maven {
         name = 'BMCL'
         url = 'https://bmclapi2.bangbang93.com/maven/'
@@ -50,3 +54,23 @@ tasks.withType(JavaCompile).configureEach {
     options.release = 17
 }
 
+tasks.register('copyToMods') {
+    doLast {
+        def sourceFile = file("${project.buildDir}/libs/mc-frp-p2p-${project.mod_version}.jar")
+        def modsDirFile = file("C:/Users/熟鳕鱼/AppData/Roaming/.minecraft/versions/1.20.1_mod_test/mods")
+        modsDirFile.mkdirs()
+        modsDirFile.eachFileMatch(~"mc-frp-p2p-.*\\.jar") { file ->
+            if (file.name != sourceFile.name) {
+                file.delete()
+                println "[MCFRP] 已删除旧版本: ${file.name}"
+            }
+        }
+        copy {
+            from sourceFile
+            into modsDirFile
+        }
+        println "[MCFRP] 模组已复制到: ${modsDirFile}/${sourceFile.name}"
+    }
+}
+
+remapJar.finalizedBy 'copyToMods'

@@ -1,0 +1,94 @@
+// init.gradle - ?????? + fabric-loom ????????
+// ????? host -> BMCL ?????????????Maven ???? -> ???/???
+
+def BMCL_MAVEN = 'https://bmclapi2.bangbang93.com/maven/'
+def ALIYUN_MAVEN = 'https://maven.aliyun.com/repository/public/'
+def TENCENT_MAVEN = 'https://mirrors.cloud.tencent.com/nexus/repository/maven-public/'
+
+def LOCAL_MANIFEST = 'file:///path/to/version_manifest_v2.json'  // ?????????
+
+// ?? host -> ?? BMCL ???????????
+def HOST_REDIRECT = [
+    'libraries.minecraft.net'    : 'https://bmclapi2.bangbang93.com/libraries',
+    'piston-data.mojang.com'    : 'https://bmclapi2.bangbang93.com',
+    'piston-meta.mojang.com'    : 'https://bmclapi2.bangbang93.com',
+    'launchermeta.mojang.com'   : 'https://bmclapi2.bangbang93.com',
+    'files.minecraftforge.net'  : 'https://bmclapi2.bangbang93.com/maven',
+    'maven.minecraftforge.net'  : 'https://bmclapi2.bangbang93.com/maven'
+]
+
+gradle.allprojects { project ->
+    project.repositories.whenObjectAdded { repo ->
+        if (repo instanceof org.gradle.api.artifacts.repositories.MavenArtifactRepository) {
+            def urlStr = repo.url.toString()
+            for (entry in HOST_REDIRECT.entrySet()) {
+                if (urlStr.contains(entry.key)) {
+                    project.logger.lifecycle("[MCFRP] ??: ${urlStr} -> ${entry.value}")
+                    try { repo.url = project.uri(entry.value) } catch (Exception e) {
+                        project.logger.lifecycle("[MCFRP] ??????: ${e.message}")
+                    }
+                    break
+                }
+            }
+        }
+    }
+
+    project.afterEvaluate {
+        // ?????????????????whenObjectAdded ???? loom ??????
+        def toRemove = []
+        project.repositories.each { repo ->
+            if (repo instanceof org.gradle.api.artifacts.repositories.MavenArtifactRepository) {
+                def urlStr = repo.url.toString()
+                for (entry in HOST_REDIRECT.entrySet()) {
+                    if (urlStr.contains(entry.key)) {
+                        toRemove << repo
+                        break
+                    }
+                }
+            }
+        }
+        toRemove.each { r ->
+            try { project.repositories.remove(r) } catch (Exception e) {
+                project.logger.lifecycle("[MCFRP] ????????: ${e.message}")
+            }
+        }
+
+        // ????????
+        def hasBmcl = project.repositories.any {
+            it instanceof org.gradle.api.artifacts.repositories.MavenArtifactRepository &&
+            it.url.toString().contains('bmclapi2.bangbang93.com')
+        }
+        def hasAliyun = project.repositories.any {
+            it instanceof org.gradle.api.artifacts.repositories.MavenArtifactRepository &&
+            it.url.toString().contains('maven.aliyun.com')
+        }
+        def hasTencent = project.repositories.any {
+            it instanceof org.gradle.api.artifacts.repositories.MavenArtifactRepository &&
+            it.url.toString().contains('mirrors.cloud.tencent.com')
+        }
+
+        if (!hasBmcl) { project.repositories.maven { name = 'BMCL'; url = project.uri(BMCL_MAVEN) } }
+        if (!hasAliyun) { project.repositories.maven { name = 'Aliyun'; url = project.uri(ALIYUN_MAVEN) } }
+        if (!hasTencent) { project.repositories.maven { name = 'Tencent'; url = project.uri(TENCENT_MAVEN) } }
+
+        // ?? fabric-loom ???????????
+        if (project.plugins.hasPlugin('fabric-loom')) {
+            try {
+                def ext = project.extensions.findByName('loom')
+                def mcExt = ext.class.getDeclaredField('minecraftExt').tap { setAccessible(true) }.get(ext)
+                if (mcExt != null) {
+                    def urlF = mcExt.class.getDeclaredField('versionManifestUrl').tap { setAccessible(true) }
+                    def old = urlF.get(mcExt)
+                    if (!old.toString().startsWith('file:')) {
+                        urlF.set(mcExt, new java.net.URI(LOCAL_MANIFEST))
+                        project.logger.lifecycle("[MCFRP] fabric-loom -> ??????")
+                    }
+                }
+            } catch (Throwable t) {
+                project.logger.lifecycle("[MCFRP] loom ????: ${t.class.simpleName}: ${t.message}")
+            }
+        }
+    }
+}
+
+println "[MCFRP] init.gradle ??????host?BMCL?? + loom?????????"
